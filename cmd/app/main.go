@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/enrico-laboratory/google-api-personal-client/cmd/googleclient"
 	"github.com/enrico-laboratory/notion-api-personal-client/cmd/notionclient"
+	"github.com/enrico-laboratory/notion-api-personal-client/cmd/notionclient/models/parsedmodels"
 	"github.com/rs/zerolog"
 	"log"
 	"os"
@@ -44,51 +45,73 @@ func main() {
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	// Get Notion Client
-	logger.Info().Msg("Initiate Notion Client")
-	notionC, err := notionclient.NewClient()
-	if err != nil {
-		logger.Fatal().Err(err)
-	}
+	chNotion := make(chan *notionclient.NotionApiClient)
+	go func() {
+		logger.Info().Msg("Initiate Notion Client")
+		notionC, err := notionclient.NewClient()
+		if err != nil {
+			logger.Fatal().Err(err)
+		}
+		chNotion <- notionC
+	}()
+
 	// Get Google Client
-	logger.Info().Msg("Initiate Google Client")
-	googleC, err := googleclient.NewClient("credentials.json", context.Background())
-	if err != nil {
-		logger.Fatal().Err(err)
-	}
-
+	chGoogle := make(chan *googleclient.GClient)
+	go func() {
+		logger.Info().Msg("Initiate Google Client")
+		googleC, err := googleclient.NewClient("credentials.json", context.Background())
+		if err != nil {
+			logger.Fatal().Err(err)
+		}
+		chGoogle <- googleC
+	}()
 	var app application
+	app.notionClient = <-chNotion
+	app.googleClient = <-chGoogle
 
-	app.notionClient = notionC
-	app.googleClient = googleC
-
+	chSchedule := make(chan []parsedmodels.Task)
 	// Query Notion Database for tasks scheduled after time.Now()
-	logger.Info().Msg("Querying Notion schedule database")
-	schedule, err := app.queryScheduleDatabase()
-	if err != nil {
-		logger.Fatal().Err(err)
-	}
+	go func() {
+		logger.Info().Msg("Querying Notion schedule database")
+		schedule, err := app.queryScheduleDatabase()
+		if err != nil {
+			logger.Fatal().Err(err)
+		}
+		chSchedule <- schedule
+	}()
 
 	// Query Notion Database for music project list
-	logger.Info().Msg("Querying Notion music projects database")
-	musicProjects, err := app.queryMusicProjectDatabase()
-	if err != nil {
-		logger.Fatal().Err(err)
-	}
+	chMusicProjects := make(chan []parsedmodels.MusicProject)
+	go func() {
+		logger.Info().Msg("Querying Notion music projects database")
+		musicProjects, err := app.queryMusicProjectDatabase()
+		if err != nil {
+			logger.Fatal().Err(err)
+		}
+		chMusicProjects <- musicProjects
+	}()
 
-	logger.Info().Msg("Getting google calendars list")
-	calendarList, err := googleC.GCalendar.List()
-	if err != nil {
-		logger.Fatal().Err(err)
-	}
+	chCalendarList := make(chan []googleclient.GCalendarModel)
+	go func() {
+		logger.Info().Msg("Getting google calendars list")
+		calendarList, err := app.googleClient.GCalendar.List()
+		if err != nil {
+			logger.Fatal().Err(err)
+		}
+		chCalendarList <- calendarList
+	}()
+	schedule := <-chSchedule
+	musicProjects := <-chMusicProjects
+	calendarList := <-chCalendarList
 
 	logger.Info().Msg("Creating Google calendar if does not exist")
-	calendarID, err := app.InsertCalendarIfDoesNotExist(calendarName, calendarList, googleC)
+	calendarID, err := app.InsertCalendarIfDoesNotExist(calendarName, calendarList, app.googleClient)
 	if err != nil {
 		logger.Fatal().Err(err)
 	}
 
 	logger.Info().Msg(fmt.Sprintf("Getting the events with end date greater than %v", now))
-	events, err := googleC.GEvent.ListByTimeMin(calendarID, time.Now())
+	events, err := app.googleClient.GEvent.ListByTimeMin(calendarID, time.Now())
 	if err != nil {
 		logger.Fatal().Err(err)
 	}
@@ -102,7 +125,7 @@ func main() {
 		if matchObject.eventTaskId == "" {
 			var event googleclient.GEventModel
 			err = app.buildEventObject(task, musicProjects, &event)
-			eventId, err := googleC.GEvent.Insert(calendarID, &event)
+			eventId, err := app.googleClient.GEvent.Insert(calendarID, &event)
 			if err != nil {
 				logger.Fatal().Err(err)
 			}
@@ -118,11 +141,11 @@ func main() {
 			} else {
 				logger.Info().Msg("Updating newer event in calendar")
 				// delete and insert event
-				err = googleC.GEvent.Delete(calendarID, matchObject.eventId)
+				err = app.googleClient.GEvent.Delete(calendarID, matchObject.eventId)
 				// Build the event to update
 				var event googleclient.GEventModel
 				err = app.buildEventObject(task, musicProjects, &event)
-				eventId, err := googleC.GEvent.Insert(calendarID, &event)
+				eventId, err := app.googleClient.GEvent.Insert(calendarID, &event)
 				if err != nil {
 					logger.Fatal().Err(err)
 				}
@@ -135,7 +158,7 @@ func main() {
 	// delete events that exist in calendar but not in Notion
 	for _, event := range events {
 		if !app.doesEventExistInNotion(event, schedule) {
-			err = googleC.GEvent.Delete(calendarID, event.EventID)
+			err = app.googleClient.GEvent.Delete(calendarID, event.EventID)
 			if err != nil {
 				logger.Fatal().Err(err)
 			}
