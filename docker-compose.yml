@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+
+  notion-to-calendar:
+    build: .
+    volumes:
+      - ./cred:/cred/
+    env_file:
+      - ./config.env
