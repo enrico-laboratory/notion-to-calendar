@@ -1,4 +1,6 @@
 /.idea/
 credentials.json
 token.json
+key.json
 config.env
+/logs/
