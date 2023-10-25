@@ -4,3 +4,4 @@ token.json
 key.json
 config.env
 /logs/
+/cred

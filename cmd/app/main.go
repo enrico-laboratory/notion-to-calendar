@@ -42,7 +42,6 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Send()
 	}
-
 }
 
 func runCronJobs() error {

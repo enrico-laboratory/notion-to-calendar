@@ -2,10 +2,14 @@ version: '3'
 
 services:
 
-  app:
+  notion_to_calendar:
     build: .
     volumes:
       - ./cred:/cred/
-      - ./logs:/logs/
+#      - logs:/logs/
     env_file:
       - ./config.env
+    restart: always
+
+volumes:
+  logs:
