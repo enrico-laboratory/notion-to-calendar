@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notion-to-calendar-deployment
+  labels:
+    app: notion-to-calendar
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notion-to-calendar
+  template:
+    metadata:
+      labels:
+        app: notion-to-calendar
+    spec:
+      nodeName: k8s-worker1
+      containers:
+        - name: notion-to-calendar
+          image: enricoruggieri/notion-to-calendar:28b4abc
+          env:
+            - name: API_VERSION
+              value: "v1"
+            - name: NOTION_VERSION
+              value: "2022-06-28"
+            - name: MUSIC_PROJECT_DATABASE_ID
+              value: "a290b3f737f242b697959acb9f18283e"
+            - name: REPERTOIRE_DATABASE_ID
+              value: "aaff3c7cc9fd4c49a9d0cead3d51f75b"
+            - name: CAST_DATABASE_ID
+              value: "065066b1d60a478a9d8a2725b2fee660"
+            - name: LOCATION_DATABASE_ID
+              value: "264aecbf12ec4d439a306d3360a70001"
+            - name: TASK_DATABASE_ID
+              value: "b25b103631b34fc2a8804eec0b2b3813"
+            - name: GOOGLE_KEY
+              value: "/cred/key.json"
+            - name: LOGS_FILE_PATH
+              value:  "/logs/logfile"
+            - name: NOTION_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  key: NOTION_TOKEN
+                  name: notion-to-calendar-secrets
+          envFrom:
+            - secretRef:
+                name: notion-to-calendar-secrets
+          volumeMounts:
+            - mountPath: /logs
+              name: logs
+            - mountPath: /cred
+              name: cred
+      volumes:
+        - name: logs
+          nfs:
+            server: 192.168.100.60
+            path: /mnt/fast-pool/docker-configs/notion-to-calendar/logs
+        - name: cred
+          nfs:
+            server: 192.168.100.60
+            path: /mnt/fast-pool/docker-configs/notion-to-calendar/cred
+            readOnly: true
