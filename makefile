@@ -1,6 +1,6 @@
 include config.env
 
-image_version = $(shell git rev-parse --short HEAD)
+image_version = $(shell git describe --tags)
 
 deploy:
 	cat password | docker login --username ${DOCKER_REPO_USERNAME} --password-stdin

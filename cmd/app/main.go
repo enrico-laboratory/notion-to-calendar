@@ -38,10 +38,12 @@ func main() {
 	}
 
 	logger = zerolog.New(logFile).With().Timestamp().Caller().Logger()
-	err = runCronJobs()
+	err = notionToCalendar()
 	if err != nil {
-		logger.Fatal().Err(err).Send()
+		logger.Error().Err(err).Send()
 	}
+
+	time.Sleep(1000 * time.Second)
 }
 
 func runCronJobs() error {
