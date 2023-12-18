@@ -3,8 +3,9 @@ module github.com/enrico-laboratory/notion-to-calendar
 go 1.18
 
 require (
-	github.com/enrico-laboratory/google-api-personal-client v0.1.11
+	github.com/enrico-laboratory/google-api-personal-client v0.1.12
 	github.com/enrico-laboratory/notion-api-personal-client v0.1.4
+	github.com/go-co-op/gocron v1.17.0
 	github.com/rs/zerolog v1.28.0
 	github.com/stretchr/testify v1.8.0
 )
@@ -13,7 +14,6 @@ require (
 	cloud.google.com/go/compute v1.7.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/enrico-laboratory/go-validator v1.1.0 // indirect
-	github.com/go-co-op/gocron v1.17.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/uuid v1.3.0 // indirect
