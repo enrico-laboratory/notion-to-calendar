@@ -5,3 +5,5 @@ key.json
 config.env
 /logs/
 /cred
+secrets.yaml
+password
