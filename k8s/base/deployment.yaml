@@ -1,7 +1,8 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: notion-to-calendar-deployment
+  name: notion-to-calendar
+  namespace: music-projects
   labels:
     app: notion-to-calendar
 spec:
@@ -14,10 +15,12 @@ spec:
       labels:
         app: notion-to-calendar
     spec:
-      nodeName: k8s-worker1
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
       containers:
         - name: notion-to-calendar
-          image: enricoruggieri/notion-to-calendar:28b4abc
+          image: enricoruggieri/notion-to-calendar:v0.1.1
           env:
             - name: API_VERSION
               value: "v1"
@@ -42,6 +45,11 @@ spec:
                 secretKeyRef:
                   key: NOTION_TOKEN
                   name: notion-to-calendar-secrets
+            - name: NOTION_CALENDAR_NAME
+              valueFrom:
+                secretKeyRef:
+                  key: NOTION_CALENDAR_NAME
+                  name: notion-to-calendar-secrets
           envFrom:
             - secretRef:
                 name: notion-to-calendar-secrets
@@ -50,13 +58,14 @@ spec:
               name: logs
             - mountPath: /cred
               name: cred
+              readOnly: true
       volumes:
         - name: logs
           nfs:
-            server: 192.168.100.60
-            path: /mnt/fast-pool/docker-configs/notion-to-calendar/logs
+            server: truenas.enricoruggieri.com
+            path: /mnt/fast-pool1/docker-configs/notion-to-calendar/logs
         - name: cred
           nfs:
-            server: 192.168.100.60
-            path: /mnt/fast-pool/docker-configs/notion-to-calendar/cred
+            server: truenas.enricoruggieri.com
+            path: /mnt/fast-pool1/docker-configs/notion-to-calendar/cred
             readOnly: true
