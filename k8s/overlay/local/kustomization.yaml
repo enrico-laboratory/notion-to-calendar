@@ -4,3 +4,4 @@ namespace: music-projects-local
 
 resources:
   - ../../base
+  - sealed_secrets.yaml
