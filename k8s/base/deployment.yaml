@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notion-to-calendar
-  namespace: music-projects
   labels:
     app: notion-to-calendar
 spec:
