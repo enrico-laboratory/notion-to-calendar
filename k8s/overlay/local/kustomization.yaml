@@ -1,24 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
+namespace: music-projects-local
 
 resources:
   - ../../base
-patches:
-  - target:
-      group: apps
-      version: v1
-      kind: Deployment
-      name: notion-to-calendar
-    patch: |-
-      op: add
-      path: /metadata/namespace
-      value: music-projects-local
-  - target:
-      group:  bitnami.com
-      version: v1alpha1
-      kind: SealedSecret
-      name: notion-to-calendar-secrets
-    patch: |-
-      op: replace
-      path: /metadata/namespace
-      value: music-projects-local
