@@ -5,10 +5,20 @@ resources:
   - ../../base
 patches:
   - target:
+      group: apps
+      version: v1
       kind: Deployment
       name: notion-to-calendar
     patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        namespace: music-projects-local
+      op: add
+      path: /metadata/namespace
+      value: music-projects-local
+  - target:
+      group:  bitnami.com
+      version: v1alpha1
+      kind: SealedSecret
+      name: notion-to-calendar-secrets
+    patch: |-
+      op: replace
+      path: /metadata/namespace
+      value: music-projects-local
