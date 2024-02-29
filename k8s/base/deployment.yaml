@@ -61,10 +61,10 @@ spec:
       volumes:
         - name: logs
           nfs:
-            server: truenas.enricoruggieri.com
+            server: 192.168.100.61
             path: /mnt/fast-pool1/docker-configs/notion-to-calendar/logs
         - name: cred
           nfs:
-            server: truenas.enricoruggieri.com
+            server: 192.168.100.61
             path: /mnt/fast-pool1/docker-configs/notion-to-calendar/cred
             readOnly: true
