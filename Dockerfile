@@ -8,6 +8,6 @@ COPY ./cmd/app /go/src/app/
 COPY ./vendor /go/src/app/vendor
 WORKDIR /go/src/app
 
-RUN go build -o /app .
+RUN env GOARCH=amd64 go build -o /app .
 
 CMD [ "/app" ]
