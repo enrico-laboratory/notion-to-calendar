@@ -37,8 +37,6 @@ spec:
               value: "b25b103631b34fc2a8804eec0b2b3813"
             - name: GOOGLE_KEY
               value: "/cred/key.json"
-            - name: LOGS_FILE_PATH
-              value:  "/logs/logfile"
             - name: NOTION_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -53,16 +51,10 @@ spec:
             - secretRef:
                 name: notion-to-calendar-secrets
           volumeMounts:
-            - mountPath: /logs
-              name: logs
             - mountPath: /cred
               name: cred
               readOnly: true
       volumes:
-        - name: logs
-          nfs:
-            server: 192.168.100.61
-            path: /mnt/fast-pool1/docker-configs/notion-to-calendar/logs
         - name: cred
           nfs:
             server: 192.168.100.61
