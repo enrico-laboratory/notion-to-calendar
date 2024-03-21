@@ -9,7 +9,7 @@ services:
 #      - logs:/logs/
     env_file:
       - ./config.env
-    restart: always
+    restart: unless-stopped
 
 volumes:
   logs:

@@ -49,7 +49,8 @@ func (app *application) setDescription(event *googleclient.GEventModel, task *pa
 		event.Description = fmt.Sprintf(
 			"TaskID\n%v\nLastEdited\n%v", task.Id, task.LastEditedTime.Format(time.RFC3339))
 	} else {
-		event.Description = "NO SCHEDULED, CHECK!!"
+		event.Description = fmt.Sprintf(
+			"NO SCHEDULED, CHECK!!\nTaskID\n%v\nLastEdited\n%v", task.Id, task.LastEditedTime.Format(time.RFC3339))
 	}
 }
 

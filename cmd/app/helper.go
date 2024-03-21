@@ -5,6 +5,13 @@ import (
 	"strings"
 )
 
+func isANotionScheduleEvent(eventDescription string) bool {
+	if strings.Contains(eventDescription, "TaskID") {
+		return true
+	}
+	return false
+}
+
 func splitMultiLineString(multilineString string) []string {
 	stringList := strings.Split(multilineString, "\n")
 	var stringListTrimmed []string

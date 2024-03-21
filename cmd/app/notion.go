@@ -3,19 +3,95 @@ package main
 import (
 	"fmt"
 	"github.com/enrico-laboratory/notion-api-personal-client/cmd/notionclient/models/parsedmodels"
-	"time"
 )
 
-func (app *application) queryScheduleDatabase() ([]parsedmodels.Task, error) {
+func (app *application) queryNotionScheduleForFutureTasks(now string) ([]parsedmodels.Task, error) {
 
-	query := fmt.Sprintf(`{ 
-				"filter": {
-		              "property": "Do Date",
-		              "date": {
-		                  "on_or_after": "%v"
-		              }
+	query := fmt.Sprintf(`{
+			"filter": {
+	 "and": [
+	   {
+	     "property": "Do Date",
+	     "date": {
+	       "on_or_after": "%v"
+	     }
+	   },
+       {
+		"or": [
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Rehearsal"
+    				}
+				},
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Concert"
+    				}
+				},
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Meeting"
+    				}
 				}
-			}`, time.Now().Format(time.RFC3339))
+			  ]
+	}
+	 ]
+	}
+			}`, now)
+
+	return app.queryNotionSchedule(query)
+
+}
+
+func (app *application) queryNotionScheduleForTasksInRange(onOrAfter, onOrBefore string) ([]parsedmodels.Task, error) {
+
+	query := fmt.Sprintf(`{
+			"filter": {
+	"and": [
+	  {
+	    "property": "Do Date",
+	    "date": {
+	      "on_or_after": "%v"
+	    }
+	  },
+	  {
+	    "property": "Do Date",
+	    "date": {
+	      "on_or_before": "%v"
+	    }
+	  }, 
+	  {
+		"or": [
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Rehearsal"
+					}
+				},
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Concert"
+					}
+				},
+				{
+					"property": "Type",
+					"select": {
+					  "equals": "Meeting"
+					}
+				}
+			  ]
+	}
+	]
+	}
+			}`, onOrAfter, onOrBefore)
+
+	return app.queryNotionSchedule(query)
+}
+func (app *application) queryNotionSchedule(query string) ([]parsedmodels.Task, error) {
 
 	tasks, err := app.notionClient.Schedule.Query(query)
 	if err != nil {
@@ -25,7 +101,7 @@ func (app *application) queryScheduleDatabase() ([]parsedmodels.Task, error) {
 	return tasks, nil
 }
 
-func (app *application) queryMusicProjectDatabase() ([]parsedmodels.MusicProject, error) {
+func (app *application) queryMusicProjects() ([]parsedmodels.MusicProject, error) {
 
 	tasks, err := app.notionClient.MusicProjects.Query("")
 	if err != nil {
