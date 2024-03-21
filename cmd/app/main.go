@@ -34,7 +34,7 @@ func main() {
 			logger.Error().Err(err).Send()
 		}
 
-		waitingTime := 10 * time.Second
+		waitingTime := 1 * time.Hour
 		logger.Info().Msg(fmt.Sprintf("Waiting for %v seconds...", waitingTime))
 		time.Sleep(waitingTime)
 	}
