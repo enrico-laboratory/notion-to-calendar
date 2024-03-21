@@ -27,12 +27,17 @@ type match struct {
 func main() {
 
 	logger = zerolog.New(os.Stdout).With().Timestamp().Stack().Caller().Logger()
-	err := notionToCalendar()
-	if err != nil {
-		logger.Error().Err(err).Send()
-	}
 
-	time.Sleep(1 * time.Hour)
+	for {
+		err := notionToCalendar()
+		if err != nil {
+			logger.Error().Err(err).Send()
+		}
+
+		waitingTime := 10 * time.Second
+		logger.Info().Msg(fmt.Sprintf("Waiting for %v seconds...", waitingTime))
+		time.Sleep(waitingTime)
+	}
 }
 
 func notionToCalendar() error {
@@ -61,27 +66,27 @@ func notionToCalendar() error {
 	app.notionClient = notionC
 	app.googleClient = googleC
 
-	logger.Info().Msg("Querying Notion schedule database for rehearsals, concerts and meeting...")
+	logger.Info().Msg("Querying Notion schedule for rehearsals, concerts and meeting type tasks...")
 	schedule, err := app.queryNotionScheduleForFutureTasks(now.Format(time.RFC3339))
 	if err != nil {
 		return err
 	}
 	logger.Info().Msg(fmt.Sprintf("%v tasks retrieved.", len(schedule)))
 
-	logger.Info().Msg("Querying Notion music projects database")
+	logger.Info().Msg("Querying Notion music projects")
 	musicProjects, err := app.queryMusicProjects()
 	if err != nil {
 		return err
 	}
 
-	logger.Info().Msg(fmt.Sprintf("Getting future events)..."))
+	logger.Info().Msg(fmt.Sprintf("Getting future events..."))
 	events, err := googleC.GEvent.ListByTimeMin(calendarName, now)
 	if err != nil {
 		return err
 	}
 	logger.Info().Msg(fmt.Sprintf("%v events retrieved.", len(events)))
 
-	logger.Info().Msg("Deleting all Notion events...")
+	logger.Info().Msg("Deleting all events retrieved...")
 	eventsDeleted := 0
 	for _, event := range events {
 		if isANotionScheduleEvent(event.Description) {
@@ -94,7 +99,7 @@ func notionToCalendar() error {
 	}
 	logger.Info().Msg(fmt.Sprintf("%v events deleted", eventsDeleted))
 
-	logger.Info().Msg(fmt.Sprintf("inserting %v task into GCalendar...", len(schedule)))
+	logger.Info().Msg(fmt.Sprintf("Inserting %v task into GCalendar...", len(schedule)))
 	eventsCreated := 0
 	for _, task := range schedule {
 		var event googleclient.GEventModel
@@ -105,7 +110,7 @@ func notionToCalendar() error {
 		}
 		eventsCreated++
 	}
-	logger.Info().Msg(fmt.Sprintf("%v events created.", eventsCreated))
+	logger.Info().Msg(fmt.Sprintf("%v events inserted.", eventsCreated))
 
 	return nil
 }
