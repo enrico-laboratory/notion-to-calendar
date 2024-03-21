@@ -19,7 +19,7 @@ spec:
         runAsGroup: 1000
       containers:
         - name: notion-to-calendar
-          image: enricoruggieri/notion-to-calendar:v0.1.1
+          image: enricoruggieri/notion-to-calendar:v0.1.2
           env:
             - name: API_VERSION
               value: "v1"
