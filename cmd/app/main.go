@@ -11,7 +11,6 @@ import (
 )
 
 var logger zerolog.Logger
-var logFile *os.File
 
 type application struct {
 	notionClient *notionclient.NotionApiClient
