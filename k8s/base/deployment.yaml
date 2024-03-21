@@ -42,7 +42,7 @@ spec:
                 secretKeyRef:
                   key: NOTION_TOKEN
                   name: notion-to-calendar-secrets
-            - name: NOTION_CALENDAR_NAME
+            - name: GOOGLE_CALENDAR_ID
               valueFrom:
                 secretKeyRef:
                   key: NOTION_CALENDAR_NAME
